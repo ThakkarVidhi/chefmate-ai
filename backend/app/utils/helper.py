@@ -1,31 +1,49 @@
 import re
+from typing import List, Union
+
 
 def to_snake_case(s: str) -> str:
+    """Convert CamelCase or PascalCase to snake_case."""
     return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 
-def parse_r_list_string(raw: str) -> list:
-    # Remove c(...) wrapper and split on commas properly
+
+def parse_r_list_string(raw: Union[str, float]) -> List[str]:
+    """
+    Parse an R-style list string (e.g., 'c("a", "b", "c")') into a Python list.
+    Returns an empty list if input is not a valid string.
+    """
+    if not isinstance(raw, str):
+        return []
+
     raw = raw.strip()
     if raw.startswith("c(") and raw.endswith(")"):
-        raw = raw[2:-1]  # remove 'c(' and ')'
-    
-    # Split on comma, remove surrounding quotes and whitespace
-    parts = [item.strip().strip('"').strip("'") for item in raw.split(",")]
+        raw = raw[2:-1]
 
-    return parts
+    # Extract values between quotes using regex to preserve commas inside quotes
+    return re.findall(r'"(.*?)"', raw)
 
-def clean_string_list(parts: str) -> list:
-    # Remove empty strings
-    parts = [p.lower() for p in parts if p]
-    
-    return parts
 
-def parse_user_ingredients(input_str: str) -> list:
-    return [re.sub(r'[^\w\s]', '', item.lower().strip()) for item in input_str.split(',') if item.strip()]
+def clean_string_list(items: List[str]) -> List[str]:
+    """Clean a list of strings: remove empty entries and lowercase everything."""
+    return [item.lower() for item in items if item]
 
-def combine_ingredients_with_quantities(quantities, ingredients):
-    quantities = parse_r_list_string(quantities)
-    
+
+def parse_user_ingredients(input_str: str) -> List[str]:
+    """Convert user input string of ingredients into a cleaned list."""
+    return [
+        re.sub(r'[^\w\s]', '', item.lower().strip())
+        for item in input_str.split(',') if item.strip()
+    ]
+
+
+def combine_ingredients_with_quantities(quantities_raw: Union[str, float], ingredients: Union[List[str], float]) -> List[str]:
+    """
+    Combine quantities and ingredients into a list of formatted strings.
+    If lengths mismatch or input is invalid, returns an empty list.
+    """
+    quantities = parse_r_list_string(quantities_raw)
+
     if not isinstance(quantities, list) or not isinstance(ingredients, list):
-        return []  # or return None if you prefer
-    return [f"{q} {i}" for q, i in zip(quantities, ingredients)]
+        return []
+
+    return [f"{q} {i}".strip() for q, i in zip(quantities, ingredients)]
