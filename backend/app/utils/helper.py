@@ -1,7 +1,6 @@
 import re
 from typing import List, Union
 
-
 def to_snake_case(s: str) -> str:
     """Convert CamelCase or PascalCase to snake_case."""
     return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
@@ -47,3 +46,19 @@ def combine_ingredients_with_quantities(quantities_raw: Union[str, float], ingre
         return []
 
     return [f"{q} {i}".strip() for q, i in zip(quantities, ingredients)]
+
+# Function to convert ISO 8601 duration to "HH:MM"
+def parse_iso_duration(duration):
+    # Check that duration is a valid string
+    if not isinstance(duration, str) or not duration.strip():
+        return None
+
+    # Try to parse ISO 8601 format like PT2H15M
+    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?", duration.strip())
+    if not match:
+        return None
+
+    hours = int(match.group(1)) if match.group(1) else 0
+    minutes = int(match.group(2)) if match.group(2) else 0
+
+    return f"{hours:02d}:{minutes:02d}"

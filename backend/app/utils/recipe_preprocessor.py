@@ -4,9 +4,9 @@ from app.utils.helper import (
     to_snake_case,
     parse_r_list_string,
     clean_string_list,
-    combine_ingredients_with_quantities
+    combine_ingredients_with_quantities,
+    parse_iso_duration
 )
-
 
 def load_recipe_data(file_path: str) -> pd.DataFrame:
     """Load recipe data from a CSV file into a DataFrame."""
@@ -45,6 +45,9 @@ def clean_recipe_data(df: pd.DataFrame) -> pd.DataFrame:
         ),
         axis=1
     )
+    
+    df['recipe_instructions'] = df['recipe_instructions'].apply(parse_r_list_string)
+    df['keywords'] = df['keywords'].apply(parse_r_list_string)
 
     # Debugging outputs (can be removed in production)
     print("Sample cleaned ingredients:")
@@ -57,6 +60,14 @@ def clean_recipe_data(df: pd.DataFrame) -> pd.DataFrame:
     # Fill in ratings and review count with sensible defaults
     df['review_count'] = df['review_count'].fillna(0).astype(int)
     df['aggregated_rating'] = df['aggregated_rating'].fillna(0.0).astype(float)
+    print(f"Sample ratings: {df[['review_count', 'aggregated_rating']].head()}")
+    
+    # Convert time columns to a more usable format
+    df['cook_time'] = df['cook_time'].apply(parse_iso_duration)
+    df['prep_time'] = df['prep_time'].apply(parse_iso_duration)
+    df['total_time'] = df['total_time'].apply(parse_iso_duration)
+    print("Sample time conversions:")
+    print(df[['cook_time', 'prep_time', 'total_time']].head())
 
     print("Final cleaned DataFrame:")
     print(df.head())
