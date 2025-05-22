@@ -1,20 +1,20 @@
-from ctransformers import AutoModelForCausalLM
+from llama_cpp import Llama
 from app.utils.config_loader import load_config
 
 class LLMRunner:
     def __init__(self):
         config = load_config()
-        # self.context_length = 4096
-        self.model = AutoModelForCausalLM.from_pretrained(
-            config["paths"]["model_path"],
-            model_type="mistral",              
-            # max_tokens=2000,               
+        self.context_length = 4096
+        self.model = Llama(
+            model_path=config["paths"]["model_path"],
+            n_ctx=self.context_length,
             temperature=0.7,
             top_p=0.9,
-            repetition_penalty=1.1,
-            stop=["<|endoftext|>", "User:", "Assistant:"]
+            repeat_penalty=1.1,
+            stop=["<|endoftext|>", "User:", "Assistant:"],
+            verbose=True 
         )
-        print(f"Loaded model from {config['paths']['model_path']}")
+        print(f"Loaded GGUF model from {config['paths']['model_path']}")
 
     def truncate_prompt(self, prompt: str) -> str:
         tokens = prompt.split()
@@ -24,9 +24,13 @@ class LLMRunner:
 
     def generate_response(self, prompt: str) -> str:
         try:
-            print(f"Generating response for prompt:")
-            response = self.model(prompt)
-            print(f"Generated response: {response}")
-            return response.strip()
+            print("Generating response for prompt...")
+            response = self.model(
+                prompt=prompt,
+                max_tokens=1024, 
+                stop=["<|endoftext|>", "User:", "Assistant:"]
+            )
+            print("Response generated. {response}")
+            return response["choices"][0]["text"].strip()
         except Exception as e:
             return f"Error generating response: {str(e)}"
