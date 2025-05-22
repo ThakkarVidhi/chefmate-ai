@@ -1,3 +1,5 @@
+import pandas as pd
+import os
 import re
 from typing import List, Union
 
@@ -62,3 +64,16 @@ def parse_iso_duration(duration):
     minutes = int(match.group(2)) if match.group(2) else 0
 
     return f"{hours:02d}:{minutes:02d}"
+
+def load_dataframe(pickle_path: str) -> pd.DataFrame:
+    """
+    Load DataFrame from a pickle file.
+    """
+    if not os.path.exists(pickle_path):
+        raise FileNotFoundError(f"Pickle file not found at: {pickle_path}")
+
+    df = pd.read_pickle(pickle_path)
+    if df.empty:
+        raise ValueError("Loaded DataFrame is empty.")
+    
+    return df
