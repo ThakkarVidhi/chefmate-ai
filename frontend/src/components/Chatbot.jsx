@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useImmer } from 'use-immer';
 import api from '@/api';
-import { parseSSEStream } from '@/utils';
 import ChatMessages from '@/components/ChatMessages';
 import ChatInput from '@/components/ChatInput';
 
 function Chatbot() {
-  const [chatId, setChatId] = useState(null);
   const [messages, setMessages] = useImmer([]);
   const [newMessage, setNewMessage] = useState('');
 
@@ -16,32 +14,31 @@ function Chatbot() {
     const trimmedMessage = newMessage.trim();
     if (!trimmedMessage || isLoading) return;
 
-    setMessages(draft => [...draft,
+    // Add user's message and a loading assistant placeholder
+    setMessages(draft => [
+      ...draft,
       { role: 'user', content: trimmedMessage },
-      { role: 'assistant', content: '', sources: [], loading: true }
+      { role: 'assistant', content: '', loading: true }
     ]);
     setNewMessage('');
 
-    let chatIdOrNew = chatId;
     try {
-      if (!chatId) {
-        const { id } = await api.createChat();
-        setChatId(id);
-        chatIdOrNew = id;
-      }
+      // Send full chat history including this latest user message
+      const chatHistory = [
+        ...messages,
+        { role: 'user', content: trimmedMessage }
+      ];
+      const assistantReply = await api.sendChatHistory(chatHistory);
 
-      const stream = await api.sendChatMessage(chatIdOrNew, trimmedMessage);
-      for await (const textChunk of parseSSEStream(stream)) {
-        setMessages(draft => {
-          draft[draft.length - 1].content += textChunk;
-        });
-      }
+      // Update assistant's message with real content
       setMessages(draft => {
+        draft[draft.length - 1].content = assistantReply;
         draft[draft.length - 1].loading = false;
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setMessages(draft => {
+        draft[draft.length - 1].content = 'Error generating the response';
         draft[draft.length - 1].loading = false;
         draft[draft.length - 1].error = true;
       });

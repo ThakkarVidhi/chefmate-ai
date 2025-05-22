@@ -72,15 +72,17 @@ function ChatMessages({ messages, isLoading }) {
           )}
 
           <div className="max-w-[90%]">
-            <div className="markdown-container">
-              {loading && !content ? (
-                <Spinner />
-              ) : role === 'assistant' ? (
-                <Markdown>{content}</Markdown>
-              ) : (
-                <div className="whitespace-pre-line">{content}</div>
-              )}
-            </div>
+            {!error && (
+              <div className="markdown-container">
+                {loading && !content ? (
+                  <Spinner />
+                ) : role === 'assistant' ? (
+                  <Markdown>{content}</Markdown>
+                ) : (
+                  <div className="whitespace-pre-line">{content}</div>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className={`flex items-center gap-1 text-sm text-error-red ${content && 'mt-2'}`}>
