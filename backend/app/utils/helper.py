@@ -51,7 +51,6 @@ def combine_ingredients_with_quantities(quantities_raw: Union[str, float], ingre
 
 # Function to convert ISO 8601 duration to "HH:MM"
 def parse_iso_duration(duration):
-    # Check that duration is a valid string
     if not isinstance(duration, str) or not duration.strip():
         return None
 

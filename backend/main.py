@@ -1,10 +1,34 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+from app.core.startup import init_dependencies
 from app.api.chat import router as chat_router
 
-app = FastAPI(title="AI Cooking Assistant")
+origins = [
+    "http://localhost:3000",        
+    "http://127.0.0.1:3000"
+]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_dependencies()
+    yield
+
+app = FastAPI(title="Chefmate AI", lifespan=lifespan)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,          
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Add your chat router
 app.include_router(chat_router, prefix="/chat")
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the AI Cooking Assistant API!"}
+    return {"message": "Welcome to the Chefmate AI API!"}

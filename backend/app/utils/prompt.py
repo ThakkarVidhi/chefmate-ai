@@ -9,17 +9,17 @@ def construct_prompt(system_prompt: str, retrieved_chunks: list, chat_history: l
     - chat history
     - latest user query
     """
-    # Format retrieved chunks
+    # Formatting retrieved chunks
     context_block = "\n".join(f"Recipe {i+1}:\n{chunk}" for i, chunk in enumerate(retrieved_chunks))
 
-    # Format chat history
+    # Formatting chat history
     formatted_history = ""
     for msg in chat_history:
         role = msg["role"]
         content = msg["content"]
         formatted_history += f"{role.capitalize()}: {content}\n"
 
-    # Combine all parts
+    # Combining all parts
     prompt = (
         f"{system_prompt}\n"
         f"[Context Retrieved from Knowledge Base]\n"
@@ -116,20 +116,20 @@ You are a helpful, friendly AI cooking assistant. Always:
 - Bullet points for ingredients.
 - Numbered steps for instructions.
 - Ask clarifying questions if anything is ambiguous.
-Avoid saying: "based on the knowledge base".
+Strictly avoid starting responses with: "Based on the knowledge base", or similar phrases.
 Keep answers concise and helpful.
 """
 
     # Normalize input
     user_message = user_message.lower()
 
-    # Detect intents
+    # Detecting intents
     matched_intents = []
     for intent, patterns in INTENT_PATTERNS.items():
         if any(re.search(pattern, user_message) for pattern in patterns):
             matched_intents.append(intent)
 
-    # Build final prompt
+    # Building final prompt
     full_prompt = base_prompt
     for intent in matched_intents:
         full_prompt += intent_addons.get(intent, "")
