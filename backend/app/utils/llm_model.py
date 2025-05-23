@@ -8,10 +8,12 @@ class LLMRunner:
         self.model = Llama(
             model_path=config["paths"]["model_path"],
             n_ctx=self.context_length,
+            n_threads=8, 
+            n_batch=128,  
             temperature=0.7,
             top_p=0.9,
             repeat_penalty=1.1,
-            stop=["<|endoftext|>", "User:", "Assistant:"],
+            stop=["<|endoftext|>"],
             verbose=True 
         )
         print(f"Loaded GGUF model from {config['paths']['model_path']}")
@@ -27,7 +29,7 @@ class LLMRunner:
             print("Generating response for prompt...")
             response = self.model(
                 prompt=prompt,
-                max_tokens=1024, 
+                max_tokens=512, 
                 stop=["<|endoftext|>", "User:", "Assistant:"]
             )
             print("Response generated. {response}")

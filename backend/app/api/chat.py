@@ -3,9 +3,10 @@ from pydantic import BaseModel
 import pandas as pd
 from typing import List, Literal, Dict
 from app.utils.faiss_handler import FAISSHandler
+from app.utils.llm_model import LLMRunner
+from app.utils.intent_detector import IntentDetector
 from app.utils.embedder import load_embedding_model, embed_text
 from app.utils.helper import load_dataframe
-from app.utils.llm_model import LLMRunner
 from app.utils.prompt import construct_prompt
 from app.utils.config_loader import load_config
 
@@ -14,6 +15,7 @@ config = load_config()
 embedding_model = load_embedding_model(config)
 df = load_dataframe(config["paths"]["cleaned_data_pkl"])
 faiss_handler = FAISSHandler(config, df)
+intent_detector = IntentDetector()
 llm_runner = LLMRunner()
 
 class ChatRequest(BaseModel):
@@ -36,16 +38,21 @@ def chat(request: ChatRequest):
             raise HTTPException(status_code=400, detail="No user message found in chat history")
         
         latest_user_message = latest_user_messages[-1]
+        print("Latest user message:", latest_user_message)
+        
+        # Intent Detection
+        intent = intent_detector.detect_intent(latest_user_message)
+        print("Detected intent:", intent)
 
         # Embed the latest user query for retrieval
         query_embedding = embed_text(latest_user_message, embedding_model)
         print("Query embedding:", query_embedding)
 
         # Inside your chat route
-        retrieved_recipes = faiss_handler.search(query_embedding, top_k=3)
+        retrieved_recipes = faiss_handler.search_by_intent(query_embedding, intent, top_k=3)
         print("Retrieved recipes:", retrieved_recipes)
         
-        system_prompt = "You are a helpful AI cooking assistant. Always answer in a warm, friendly tone with step-by-step guidance. If you don't know the answer, say 'I don't know'. If you need more information, ask the user for clarification."
+        system_prompt ='''You are a helpful and friendly AI cooking assistant. Respond in a warm, conversational tone, and provide clear, step-by-step instructions formatted in proper Markdown for better readability (e.g., use lists, headers, and bold text when appropriate).\n Always: - Format your response using Markdown syntax. - Organize steps or ingredients as bullet points or numbered lists. - Use **bold** to highlight key actions or ingredients.\n If you are unsure about something, say: "I'm not sure about that. If more details are needed, politely ask the user for clarification. Avoid making assumptions. Stay concise, friendly, and informative.'''
 
         prompt = construct_prompt(
             system_prompt=system_prompt,
