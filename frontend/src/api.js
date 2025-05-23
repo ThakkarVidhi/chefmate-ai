@@ -1,50 +1,44 @@
-// const BASE_URL = import.meta.env.VITE_API_URL;
-
-// async function createChat() {
-//   const res = await fetch(BASE_URL + '/chats', {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' }
-//   });
-//   const data = await res.json();
-//   if (!res.ok) {
-//     return Promise.reject({ status: res.status, data });
-//   }
-//   return data;
-// }
-
-// async function sendChatMessage(chatId, message) {
-//   const res = await fetch(BASE_URL + `/chats/${chatId}`, {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify({ message })
-//   });
-//   if (!res.ok) {
-//     return Promise.reject({ status: res.status, data: await res.json() });
-//   }
-//   return res.body;
-// }
-
-// export default {
-//   createChat, sendChatMessage
-// };
-
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-async function sendChatHistory(chatHistory) {
-  const res = await fetch(`${BASE_URL}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_history: chatHistory })
-  });
+async function sendChatHistoryStream(chatHistory, onMessageChunk) {
+  try {
 
-  if (!res.ok) {
-    return Promise.reject({ status: res.status, data: await res.json() });
+    const res = await fetch(`${BASE_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_history: chatHistory })
+    });
+
+    console.log(res)
+    
+    if (!res.ok) {
+      console.log("Error:")
+      console.log(res)
+      throw new Error(`Server error: ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let message = '';
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      message += chunk;
+      onMessageChunk(chunk); // Notify frontend to append streamed content
+    }
+    
+    return message;
+    
+  } catch (err) {
+    console.error("Fetch failed:", err);
+    throw err;
   }
-
-  const data = await res.json();
-  return data.response; // Assuming response = LLM output string
 }
 
 export default {
-  sendChatHistory
+  sendChatHistoryStream
 };

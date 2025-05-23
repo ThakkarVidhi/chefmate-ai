@@ -13,36 +13,53 @@ function Chatbot() {
   async function submitNewMessage() {
     const trimmedMessage = newMessage.trim();
     if (!trimmedMessage || isLoading) return;
-
-    // Add user's message and a loading assistant placeholder
+  
     setMessages(draft => [
       ...draft,
       { role: 'user', content: trimmedMessage },
       { role: 'assistant', content: '', loading: true }
     ]);
     setNewMessage('');
-
+  
+    const chatHistory = [...messages, { role: 'user', content: trimmedMessage }];
+  
+    let cleanup;
+  
     try {
-      // Send full chat history including this latest user message
-      const chatHistory = [
-        ...messages,
-        { role: 'user', content: trimmedMessage }
-      ];
-      const assistantReply = await api.sendChatHistory(chatHistory);
-
-      // Update assistant's message with real content
-      setMessages(draft => {
-        draft[draft.length - 1].content = assistantReply;
-        draft[draft.length - 1].loading = false;
-      });
+      cleanup = api.sendChatHistoryStream(
+        chatHistory,
+        (chunk) => {
+          setMessages(draft => {
+            draft[draft.length - 1].content += chunk + ' ';
+          });
+        },
+        () => {
+          setMessages(draft => {
+            draft[draft.length - 1].loading = false;
+          });
+        },
+        (err) => {
+          console.error("Stream error:", err);
+          setMessages(draft => {
+            draft[draft.length - 1].content = 'Error generating the response';
+            draft[draft.length - 1].loading = false;
+            draft[draft.length - 1].error = true;
+          });
+        }
+      );
     } catch (err) {
-      console.error(err);
+      console.error("Fetch failed:", err);
       setMessages(draft => {
-        draft[draft.length - 1].content = 'Error generating the response';
-        draft[draft.length - 1].loading = false;
-        draft[draft.length - 1].error = true;
+        const lastIndex = draft.length - 1;
+        if (lastIndex >= 0 && draft[lastIndex].loading) {
+          draft[lastIndex].content = 'Error generating the response';
+          draft[lastIndex].loading = false;
+          draft[lastIndex].error = true;
+        }
       });
     }
+
+    return () => cleanup?.();
   }
 
   return (
