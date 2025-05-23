@@ -173,5 +173,56 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Model files
-models/*.gguf
+# Python
+__pycache__/
+*.py[cod]
+*.pkl
+*.parquet
+*.csv
+*.log
+.env
+.env.*
+*.db
+*.sqlite3
+*.yml
+*.yaml
+*.index
+*.gguf
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# FastAPI / Uvicorn
+*.pid
+
+# Frontend
+node_modules/
+dist/
+build/
+*.log
+.npm
+.vite
+.vscode/
+*.lock
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs & tools
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+
+# Misc
+*.tmp
+*.cache
+.cache/
+coverage/
+__snapshots__/
+*.egg-info/
