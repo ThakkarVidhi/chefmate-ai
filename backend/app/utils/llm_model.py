@@ -30,9 +30,22 @@ class LLMRunner:
             response = self.model(
                 prompt=prompt,
                 max_tokens=512, 
-                stop=["<|endoftext|>", "User:", "Assistant:"]
+                stop=["<|endoftext|>"]
             )
             print("Response generated. {response}")
             return response["choices"][0]["text"].strip()
         except Exception as e:
             return f"Error generating response: {str(e)}"
+        
+    def stream_response(self, prompt: str):
+        try:
+            print("Streaming response for prompt...")
+            for chunk in self.model(
+                prompt=prompt,
+                max_tokens=512,
+                stream=True,
+                stop=["<|endoftext|>", "User:", "Assistant:"]
+            ):
+                yield chunk["choices"][0]["text"]
+        except Exception as e:
+            yield f"\n[Error generating response: {str(e)}]"
