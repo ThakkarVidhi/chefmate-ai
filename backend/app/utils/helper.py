@@ -20,7 +20,6 @@ def parse_r_list_string(raw: Union[str, float]) -> List[str]:
     if raw.startswith("c(") and raw.endswith(")"):
         raw = raw[2:-1]
 
-    # Extract values between quotes using regex to preserve commas inside quotes
     return re.findall(r'"(.*?)"', raw)
 
 
@@ -76,3 +75,9 @@ def load_dataframe(pickle_path: str) -> pd.DataFrame:
         raise ValueError("Loaded DataFrame is empty.")
     
     return df
+
+def clean_streamed_text(text: str) -> str:
+    text = re.sub(r'[ ]{2,}', ' ', text)  
+    text = re.sub(r'\s+\n', '\n', text)   
+    text = re.sub(r'\n\s+', '\n', text)   
+    return text

@@ -23,14 +23,12 @@ function Chatbot() {
   
     const chatHistory = [...messages, { role: 'user', content: trimmedMessage }];
   
-    let cleanup;
-  
     try {
-      cleanup = api.sendChatHistoryStream(
+      await api.sendChatHistoryStream(
         chatHistory,
         (chunk) => {
           setMessages(draft => {
-            draft[draft.length - 1].content += chunk + ' ';
+            draft[draft.length - 1].content += chunk;
           });
         },
         () => {
@@ -41,7 +39,7 @@ function Chatbot() {
         (err) => {
           console.error("Stream error:", err);
           setMessages(draft => {
-            draft[draft.length - 1].content = 'Error generating the response';
+            draft[draft.length - 1].content = 'Error generating the response.';
             draft[draft.length - 1].loading = false;
             draft[draft.length - 1].error = true;
           });
@@ -52,14 +50,12 @@ function Chatbot() {
       setMessages(draft => {
         const lastIndex = draft.length - 1;
         if (lastIndex >= 0 && draft[lastIndex].loading) {
-          draft[lastIndex].content = 'Error generating the response';
+          draft[lastIndex].content = 'Error generating the response.';
           draft[lastIndex].loading = false;
           draft[lastIndex].error = true;
         }
       });
     }
-
-    return () => cleanup?.();
   }
 
   return (

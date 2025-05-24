@@ -17,7 +17,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Chefmate AI", lifespan=lifespan)
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,          
@@ -26,7 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add your chat router
 app.include_router(chat_router, prefix="/chat")
 
 @app.get("/")

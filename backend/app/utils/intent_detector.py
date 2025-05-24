@@ -15,7 +15,6 @@ IntentType = Literal[
 
 class IntentDetector:
     def __init__(self):
-        # Optional: Define keyword groups
         self.recipe_keywords = ["recipe", "make", "cook", "prepare", "how to"]
         self.ingredient_keywords = ["have", "with", "using", "ingredients"]
         self.step_keywords = ["next step", "what's next", "then", "after that"]

@@ -10,7 +10,11 @@ def construct_prompt(system_prompt: str, retrieved_chunks: list, chat_history: l
     - latest user query
     """
     # Formatting retrieved chunks
-    context_block = "\n".join(f"Recipe {i+1}:\n{chunk}" for i, chunk in enumerate(retrieved_chunks))
+    if retrieved_chunks:
+        context_block = "\n".join(f"Recipe {i+1}:\n{chunk}" for i, chunk in enumerate(retrieved_chunks))
+        context_message = f"[Context Retrieved from Knowledge Base]\n{context_block}\n"
+    else:
+        context_message = "[No context retrieved. Try to respond based on the chat history or ask the user for clarification.]\n"
 
     # Formatting chat history
     formatted_history = ""
@@ -22,8 +26,7 @@ def construct_prompt(system_prompt: str, retrieved_chunks: list, chat_history: l
     # Combining all parts
     prompt = (
         f"{system_prompt}\n"
-        f"[Context Retrieved from Knowledge Base]\n"
-        f"{context_block}\n"
+        f"{context_message}"
         f"[Conversation History]\n"
         f"{formatted_history}\n"
         f"The user asked: {latest_user_message}\n"
@@ -69,10 +72,11 @@ def generate_system_prompt(user_message: str) -> str:
     intent_addons = {
         "SuggestRecipe": """
 When suggesting recipes:
-- Provide 2–3 options.
-- Include name, category, calories, cook time, and rating.
-- Add image (Markdown) if available.
-- Brief list of ingredients.
+- Provide 2 to 3 options in Markdown.
+- Include name, category, calories, cook time (e.g., "1 hour 30 minutes", not 01:30), and rating - strictly each on a new line with labels, and properly formatted
+- Immediately after the name, include a Markdown image (if available from the context retrieved).
+- Brief list of ingredients [sub-bulleted list or comma separated].
+- There is no need to include instructions.
 """,
         "IngredientQuery": """
 For ingredient questions:
@@ -80,7 +84,7 @@ For ingredient questions:
 - Only include relevant ingredients.
 """,
         "InstructionsOnly": """
-When explaining steps:
+When explaining instructions steps:
 - Use a numbered list.
 - Avoid adding unrelated commentary.
 """,
@@ -92,7 +96,7 @@ For nutrition questions:
         "CookingTimeFilter": """
 For time-based requests:
 - Suggest recipes with matching or under X cook time.
-- Clearly show total cooking time.
+- Clearly show total cooking time (e.g., "1 hour 30 minutes", not 01:30).
 """,
         "DietaryPreferences": """
 Respect dietary preferences like vegan, gluten-free, etc.
@@ -100,7 +104,8 @@ Respect dietary preferences like vegan, gluten-free, etc.
 """,
         "ExpandRecipe": """
 If elaborating on a recipe:
-- Include full details (name, ingredients, instructions, image, calories, rating, total time).
+- Include full details (name, image, ingredients, instructions, calories, rating, total time).
+- Numbered steps for instructions.
 """,
         "ToolOrMethodQuery": """
 For tool/method questions:
@@ -111,12 +116,9 @@ For tool/method questions:
 
     base_prompt = """
 You are a helpful, friendly AI cooking assistant. Always:
-- Format responses using Markdown.
-- Use **bold** for key terms.
-- Bullet points for ingredients.
-- Numbered steps for instructions.
+- Format response using proper Markdown syntax [e.g., Use **bold** for key terms].
 - Ask clarifying questions if anything is ambiguous.
-Strictly avoid starting responses with: "Based on the knowledge base", or similar phrases.
+Strictly avoid responses stating: "Based on the knowledge base", or similar phrases.
 Keep answers concise and helpful.
 """
 
