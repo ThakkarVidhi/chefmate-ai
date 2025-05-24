@@ -153,21 +153,21 @@ This project includes detailed backend architecture and API documentation for th
 
 ### 🔧 Backend API and Flow
 
-- [**Backend API Documentation**](backend/docs/backend_api_doc.pdf)  
+- [**Backend API Documentation**](./docs/backend_api_doc.pdf)  
   Comprehensive reference for the `/chat` endpoint and RAG + LLM response pipeline.
 
-- ![**RAG Flow Diagram**](backend/docs/rag_llm_backend_flow.png)  
+- [**RAG Flow Diagram**](./docs/rag_llm_backend_flow.png)  
   *High-level flowchart of the backend request pipeline (RAG + LLM).*
 
-- [**Backend Flow Diagram**](backend/docs/backend_api_flow_diagram.png)  
+- [**Backend Flow Diagram**](./docs/backend_api_flow_diagram.png)  
   Visual walkthrough of the backend logic per user request.
 
 ### 🧠 System Architecture
 
-- [**Chefmate System Architecture (PNG)**](backend/docs/chefmate_system_architechture.png)  
+- [**Chefmate System Architecture (PNG)**](./docs/chefmate_system_architechture.png)  
   End-to-end system layout including frontend, backend, database, and LLM components.
 
-- [**Chefmate Pipeline Architecture (Text)**](backend/docs/chefmate_pipeline_architechture_diagram.txt)  
+- [**Chefmate Pipeline Architecture (Text)**](./docs/chefmate_pipeline_architechture_diagram.txt)  
   Textual breakdown of the processing pipeline logic for easy version tracking and discussion.
 
 ---
@@ -176,7 +176,7 @@ This project includes detailed backend architecture and API documentation for th
 
 Below are snapshot of the application showcasing its functionality:
 
-![Chatbot UI](./frontend/public/chatbot_ui.png)
+![Chatbot UI](./docs/chatbot_ui.png)
 
 ---
 
@@ -259,7 +259,7 @@ pip install -r requirements.txt
 # Start the backend server (in one terminal)
 uvicorn main:app --reload
 
-# In another terminal, POST to the data preparation endpoint [Optional] (the  data is already indexed and ready at `backend/data/indexes/` & `backend/data/processed/`):
+# In another terminal, POST to the data preparation endpoint:
 curl -X POST http://localhost:8000/data/initialize-recipes
 ```
 
@@ -279,8 +279,6 @@ curl -X POST http://localhost:8000/data/initialize-recipes
     ```bash
     backend/data/indexes/
     ```
-
-> No need to use the chat API to initialize — data is already indexed and ready.
 
 #### f. Run the Backend Server
     
