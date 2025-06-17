@@ -55,7 +55,7 @@ def generate_system_prompt(user_message: str) -> str:
             r"\b(dinner|lunch|breakfast|snack).*ideas?\b",
         ],
         "IngredientQuery": [
-            r"\b(ingredients?|need(ed)?|using|require|contain|consist of)\b",
+            r"\b(ingredients?|need(ed)?|using|require|contain|consist of|with|based on|that use|made with|made from|that include|prepare with)\b",
             r"\b(do i need|what do i need|is it made of)\b.*",
         ],
         "InstructionsOnly": [
