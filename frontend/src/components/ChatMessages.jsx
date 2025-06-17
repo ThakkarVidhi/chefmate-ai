@@ -1,4 +1,6 @@
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import useAutoScroll from '@/hooks/useAutoScroll';
 import Spinner from '@/components/Spinner';
 import userIcon from '@/assets/images/user.svg';
@@ -34,7 +36,12 @@ function ChatMessages({ messages, isLoading }) {
                 {loading && !content ? (
                   <Spinner />
                 ) : role === 'assistant' ? (
-                  <Markdown>{content}</Markdown>
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                  >
+                    {content}
+                  </Markdown>
                 ) : (
                   <div className="whitespace-pre-line">{content}</div>
                 )}

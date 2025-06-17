@@ -1,30 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useImmer } from 'use-immer';
 import api from '@/api';
+import { getSessionId } from '@/utils/session'; 
 import ChatMessages from '@/components/ChatMessages';
 import ChatInput from '@/components/ChatInput';
 
 function Chatbot() {
   const [messages, setMessages] = useImmer([]);
   const [newMessage, setNewMessage] = useState('');
+  const [sessionId, setSessionId] = useState('');
 
   const isLoading = messages.length && messages[messages.length - 1].loading;
+
+  useEffect(() => {
+    setSessionId(getSessionId()); 
+  }, []);
 
   async function submitNewMessage() {
     const trimmedMessage = newMessage.trim();
     if (!trimmedMessage || isLoading) return;
-  
+
     setMessages(draft => [
       ...draft,
       { role: 'user', content: trimmedMessage },
       { role: 'assistant', content: '', loading: true }
     ]);
     setNewMessage('');
-  
+
     const chatHistory = [...messages, { role: 'user', content: trimmedMessage }];
-  
+
     try {
       await api.sendChatHistoryStream(
+        sessionId,                        
         chatHistory,
         (chunk) => {
           setMessages(draft => {
@@ -33,7 +40,14 @@ function Chatbot() {
         },
         () => {
           setMessages(draft => {
-            draft[draft.length - 1].loading = false;
+            const lastMessage = draft[draft.length - 1];
+            lastMessage.loading = false;
+
+            const cleaned = lastMessage.content.trim();
+            if (cleaned === '') {
+              lastMessage.content = '_Sorry, I couldn’t find enough relevant information to answer that. Could you please clarify or try rephrasing?_';
+              lastMessage.fallback = true;
+            }
           });
         },
         (err) => {
@@ -43,6 +57,9 @@ function Chatbot() {
             draft[draft.length - 1].loading = false;
             draft[draft.length - 1].error = true;
           });
+        },
+        (metadata) => {
+          console.log("Received metadata:", metadata);
         }
       );
     } catch (err) {

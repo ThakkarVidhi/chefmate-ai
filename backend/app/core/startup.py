@@ -4,6 +4,7 @@ from app.utils.helper import load_dataframe
 from app.utils.faiss_handler import FAISSHandler
 from app.utils.intent_detector import IntentDetector
 from app.utils.llm_model import LLMRunner
+from app.core.session import SessionManager 
 
 class GlobalState:
     config = None
@@ -12,6 +13,7 @@ class GlobalState:
     faiss_handler = None
     intent_detector = None
     llm_runner = None
+    session_manager = None 
 
 def init_dependencies():
     if GlobalState.config is None:
@@ -31,3 +33,6 @@ def init_dependencies():
 
     if GlobalState.llm_runner is None:
         GlobalState.llm_runner = LLMRunner()
+
+    if GlobalState.session_manager is None: 
+        GlobalState.session_manager = SessionManager()

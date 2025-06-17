@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from backend.app.utils.recipe_preprocessor import load_recipe_data, clean_recipe_data
+from app.utils.recipe_preprocessor import load_recipe_data, clean_recipe_data
 from app.utils.embedder import generate_recipe_embeddings
 from app.utils.faiss_handler import build_recipe_faiss_indexes
 from app.utils.config_loader import load_config

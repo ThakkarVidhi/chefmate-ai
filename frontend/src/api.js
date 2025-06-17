@@ -1,18 +1,18 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-async function sendChatHistoryStream(chatHistory, onToken, onDone, onError) {
+async function sendChatHistoryStream(sessionId, chatHistory, onToken, onDone, onError, onMetadata) {
   try {
     console.log("Sending chat history:", chatHistory);
 
-    let resBody = chatHistory.map(({ role, content }) => ({
-      role,
-      content
-    }));
+    const payload = {
+      session_id: sessionId,
+      chat_history: chatHistory.map(({ role, content }) => ({ role, content })),
+    };
 
     const res = await fetch(`${BASE_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_history: resBody }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -21,7 +21,6 @@ async function sendChatHistoryStream(chatHistory, onToken, onDone, onError) {
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
-
     let buffer = '';
 
     while (true) {
@@ -31,25 +30,39 @@ async function sendChatHistoryStream(chatHistory, onToken, onDone, onError) {
       buffer += decoder.decode(value, { stream: true });
 
       const lines = buffer.split('\n');
-      buffer = lines.pop();
+      buffer = lines.pop(); 
 
       for (const line of lines) {
+        console.log("Received line:", line);
         if (!line.trim()) continue;
+
         try {
           const parsed = JSON.parse(line);
-          if (parsed.type === 'token') {
-            onToken(parsed.content);
-          } else if (parsed.type === 'done') {
-            onDone();
-          } else if (parsed.type === 'error') {
-            onError(parsed.message);
+          console.log(parsed)
+          console.log("Parsed message type:", parsed.type);
+          console.log("Parsed message event:", parsed.event);
+
+          switch (parsed.event) {
+            case 'token':
+              onToken(parsed.data);
+              break;
+            case 'done':
+              onDone();
+              break;
+            case 'metadata':
+              onMetadata?.(parsed.data);
+              break;
+            case 'error':
+              onError(parsed.message);
+              break;
+            default:
+              console.warn('Unknown message event:', parsed.event);
           }
         } catch (err) {
           console.error("Failed to parse line:", line, err);
         }
       }
     }
-
   } catch (err) {
     console.error("Fetch failed:", err);
     onError(err.message);
